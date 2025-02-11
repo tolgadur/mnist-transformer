@@ -1,5 +1,4 @@
 from dataset import MnistDataset
-import matplotlib.pyplot as plt
 
 
 def main():
@@ -7,10 +6,7 @@ def main():
     dataset_iterator = iter(dataset)
     example_images, example_labels = next(dataset_iterator)
 
-    plt.imshow(example_images, cmap="gray")
-    plt.title(f"Label: {example_labels}")
-    plt.show()
-
+    print(example_images)
     print(example_labels)
 
 

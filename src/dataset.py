@@ -24,4 +24,4 @@ class MnistDataset(torch.utils.data.IterableDataset):
                 (images[0, 0], images[1, 0]), dim=1
             )  # images[0, 0] has dim 28 x 28 i.e. height and width
             bottom = torch.cat((images[2, 0], images[3, 0]), dim=1)
-            yield torch.cat((top, bottom), dim=0), labels[0]
+            yield torch.cat((top, bottom), dim=0), labels

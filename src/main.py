@@ -1,13 +1,14 @@
 from dataset import MnistDataset
+import matplotlib.pyplot as plt
 
 
 def main():
     dataset = MnistDataset()
     dataset_iterator = iter(dataset)
-    example_images, example_labels = next(dataset_iterator)
+    images, vector, labels = next(dataset_iterator)
 
-    print(example_images)
-    print(example_labels)
+    plt.imshow(images)
+    plt.show()
 
 
 if __name__ == "__main__":

@@ -34,6 +34,12 @@ class MnistDataset(torch.utils.data.IterableDataset):
         return patches
 
     def __iter__(self):
+        """
+        Yields:
+            combined: shape: (56 x 56) - These are the 4 images combined into one
+            flattened: shape: (16 x 196) - These are the 16 patches flattened into a vector
+            labels: shape: (4) - These are the labels for the 4 images
+        """
         for images, labels in self.dataloader:
             top = torch.cat((images[0, 0], images[1, 0]), dim=1)
             bottom = torch.cat((images[2, 0], images[3, 0]), dim=1)
@@ -44,4 +50,4 @@ class MnistDataset(torch.utils.data.IterableDataset):
 
             # Reshape from
             flattened = patches.reshape(16, -1)  # shape: (16 x 196)
-            yield flattened, labels
+            yield combined, flattened, labels

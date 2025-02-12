@@ -64,6 +64,6 @@ class MnistDataset(torch.utils.data.IterableDataset):
             flattened = patches.reshape(16, -1)
 
             # Convert labels to class index
-            class_index = self._labels_to_class_index(labels)
+            labels = self._labels_to_class_index(labels)
 
-            yield combined, flattened, class_index
+            yield combined, flattened, labels

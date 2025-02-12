@@ -25,7 +25,7 @@ class Encoder(nn.Module):
         batch_size = x.shape[0]
 
         x = self.embedding(x)
-        
+
         cls_token = self.cls_token.expand(batch_size, -1, -1)
         x = torch.cat((cls_token, x), dim=1)
 

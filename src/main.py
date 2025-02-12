@@ -1,5 +1,6 @@
 import train
 import utils
+import evals
 
 
 def main():
@@ -7,6 +8,9 @@ def main():
 
     train.train_classifier()
     train.train_single_digit_classifier()
+
+    evals.evaluate_single_digit_classifier()
+    evals.evaluate_classifier()
 
 
 if __name__ == "__main__":

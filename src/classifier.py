@@ -16,8 +16,10 @@ class ClassificationModel(nn.Module):
     def forward(self, x):
         # Get encoder output
         encoder_output = self.encoder(x)
+
         # Use CLS token output (first token)
         cls_token = encoder_output[:, 0, :]
+
         # Project to classification space
         logits = self.classifier(cls_token)
         return logits

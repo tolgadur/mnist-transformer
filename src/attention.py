@@ -9,45 +9,81 @@ class Attention(nn.Module):
 
         self.apply_mask = apply_mask
         self.d_k = d_model // heads
-        self.d_v = self.d_k
         self.heads = heads
+        self.d_model = d_model
         self.scale = torch.sqrt(torch.tensor(self.d_k)).item()
 
-        self.Qs = nn.ModuleList([nn.Linear(self.d_k, self.d_k) for _ in range(heads)])
-        self.Ks = nn.ModuleList([nn.Linear(self.d_k, self.d_k) for _ in range(heads)])
-        self.Vs = nn.ModuleList([nn.Linear(self.d_v, self.d_v) for _ in range(heads)])
+        # self.Qs = nn.ModuleList([nn.Linear(self.d_k, self.d_k) for _ in range(heads)])
+        # self.Ks = nn.ModuleList([nn.Linear(self.d_k, self.d_k) for _ in range(heads)])
+        # self.Vs = nn.ModuleList([nn.Linear(self.d_k, self.d_k) for _ in range(heads)])
+        self.keys = nn.Linear(d_model, 3 * d_model)
 
         self.layer_norm = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x: torch.Tensor):
-        # split x into self.head, equal sized chunks across the last dimension.
-        # dim: batch_size, seq_len, d_model -> list of batch_size, seq_len, d_k
-        head_chunks = torch.chunk(x, self.heads, dim=-1)
+        batch_size, seq_len, _ = x.shape
 
-        As = []
-        for i in range(self.heads):
-            Q = self.Qs[i](head_chunks[i])  # dim: batch_size, seq_len, d_k
-            K = self.Ks[i](head_chunks[i])  # dim: batch_size, seq_len, d_k
-            V = self.Vs[i](head_chunks[i])  # dim: batch_size, seq_len, d_v
+        # Split into three equal chunks of size d_model each
+        qry, key, val = self.keys(x).chunk(3, dim=-1)
 
-            # dim: batch_size, seq_len, seq_len
-            A = torch.matmul(Q, K.transpose(-2, -1)) / self.scale
+        # dim: batch_size, seq_len, d_model -> batch_size, seq_len, heads, d_k
+        qry = qry.reshape(batch_size, seq_len, self.heads, self.d_k)
+        key = key.reshape(batch_size, seq_len, self.heads, self.d_k)
+        val = val.reshape(batch_size, seq_len, self.heads, self.d_k)
 
-            # apply mask if provided
-            if self.apply_mask:
-                mask = torch.tril(torch.ones(A.shape[-2:], device=A.device))
-                mask = mask.unsqueeze(0)  # add batch dimension
-                A = A.masked_fill(mask == 0, float("-inf"))
+        # dim: batch_size, seq_len, heads, d_k -> batch_size, heads, seq_len, d_k
+        qry = qry.transpose(1, 2)
+        key = key.transpose(1, 2)
+        val = val.transpose(1, 2)
 
-            A = torch.softmax(A, dim=-1)
-            A = torch.matmul(A, V)  # dim: batch_size, seq_len, d_v
+        A = torch.matmul(qry, key.transpose(-2, -1)) / self.scale
 
-            As.append(A)
+        if self.apply_mask:
+            mask = torch.tril(torch.ones(A.shape[-2:], device=A.device))
+            mask = mask.unsqueeze(0)  # add batch dimension
+            A = A.masked_fill(mask == 0, float("-inf"))
 
-        A = torch.cat(As, dim=-1)
+        A = torch.softmax(A, dim=-1)
+        A = torch.matmul(A, val)  # dim: batch_size, heads, seq_len, d_k
+
+        A = A.transpose(1, 2)  # dim: batch_size, seq_len, heads, d_k
+        A = A.reshape(batch_size, seq_len, self.d_model)
+
         A = self.dropout(A)
         A = A + x  # residual connection
         A = self.layer_norm(A)
 
         return A
+
+    # def forward(self, x: torch.Tensor):
+    #     # split x into self.head, equal sized chunks across the last dimension.
+    #     # dim: batch_size, seq_len, d_model -> list of batch_size, seq_len, d_k
+    #     head_chunks = torch.chunk(x, self.heads, dim=-1)
+
+    #     As = []
+    #     for i in range(self.heads):
+    #         Q = self.Qs[i](head_chunks[i])  # dim: batch_size, seq_len, d_k
+    #         K = self.Ks[i](head_chunks[i])  # dim: batch_size, seq_len, d_k
+    #         V = self.Vs[i](head_chunks[i])  # dim: batch_size, seq_len, d_v
+
+    #         # dim: batch_size, seq_len, seq_len
+    #         A = torch.matmul(Q, K.transpose(-2, -1)) / self.scale
+
+    #         # apply mask if provided
+    #         if self.apply_mask:
+    #             mask = torch.tril(torch.ones(A.shape[-2:], device=A.device))
+    #             mask = mask.unsqueeze(0)  # add batch dimension
+    #             A = A.masked_fill(mask == 0, float("-inf"))
+
+    #         A = torch.softmax(A, dim=-1)
+    #         A = torch.matmul(A, V)  # dim: batch_size, seq_len, d_v
+
+    #         As.append(A)
+
+    #     A = torch.cat(As, dim=-1)
+    #     A = self.dropout(A)
+    #     A = A + x  # residual connection
+    #     A = self.layer_norm(A)
+
+    #     return A

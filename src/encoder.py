@@ -4,7 +4,7 @@ from attention import Attention
 
 
 class Encoder(nn.Module):
-    def __init__(self, input_dim=196, dff=1024, seq_len=16, d_model=64, dropout=0.1):
+    def __init__(self, input_dim=196, dff=256, seq_len=16, d_model=64, dropout=0.1):
         super().__init__()
 
         # Learnable class token
@@ -36,7 +36,7 @@ class Encoder(nn.Module):
 
 
 class EncoderBlock(nn.Module):
-    def __init__(self, dff=1024, d_model=64, dropout=0.1):
+    def __init__(self, dff=256, d_model=64, dropout=0.1):
         super().__init__()
 
         self.attention = Attention(d_model, dropout)

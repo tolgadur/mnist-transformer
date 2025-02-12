@@ -3,6 +3,44 @@ import torchvision
 import torchvision.transforms as transforms
 
 
+class MnistSingleDigitDataset(torch.utils.data.Dataset):
+    def __init__(self, train=True):
+        transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.1307], std=[0.3081]),
+            ]
+        )
+        self.dataset = torchvision.datasets.MNIST(
+            root="./data", train=train, download=True, transform=transform
+        )
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def _create_patches(self, image: torch.Tensor, patch_dim: int):
+        patch_size = image.shape[0] // patch_dim  # 56 / 4 = 14
+
+        image = image.unfold(0, patch_size, patch_size)  # shape: ( 4 x 56 x 14)
+        image = image.unfold(1, patch_size, patch_size)  # shape: ( 4 x 4 x 14 x 14)
+
+        patches = image.reshape(
+            shape=(-1, patch_size, patch_size)
+        )  # shape: (16 x 14 x 14)
+
+        return patches
+
+    def __getitem__(self, index):
+        image, label = self.dataset[index]
+        image = image.squeeze(0)  # remove channel dimension, shape: (56 x 56)
+
+        # Create patches and flatten them
+        patches = self._create_patches(image, 2)  # shape: (4, 14, 14)
+        flattened = patches.reshape(4, -1)  # shape: (4, 196)
+
+        return image, flattened, label
+
+
 class MnistDataset(torch.utils.data.IterableDataset):
     def __init__(self, train=True, num_samples=500000, seed=42):
         transform = transforms.Compose(

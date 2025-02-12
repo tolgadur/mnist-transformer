@@ -20,17 +20,19 @@ class Attention(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x: torch.Tensor):
+        # split x into self.head, equal sized chunks across the last dimension.
+        # dim: batch_size, seq_len, d_model -> list of batch_size, seq_len, d_k
+        head_chunks = torch.chunk(x, self.heads, dim=-1)
 
         As = []
-        head_chunks = torch.chunk(x, self.heads, dim=-1)
         for i in range(self.heads):
             Q = self.Qs[i](head_chunks[i])  # dim: batch_size, seq_len, d_k
             K = self.Ks[i](head_chunks[i])  # dim: batch_size, seq_len, d_k
             V = self.Vs[i](head_chunks[i])  # dim: batch_size, seq_len, d_v
 
-            # only transpose last two layers of tensor, not the batch size
+            # dim: batch_size, seq_len, seq_len
             A = torch.matmul(Q, K.transpose(-2, -1)) / self.scale
-            A = torch.softmax(A, dim=-1)  # todo: why dim=-1?
+            A = torch.softmax(A, dim=-1)
             A = torch.matmul(A, V)  # dim: batch_size, seq_len, d_v
 
             As.append(A)

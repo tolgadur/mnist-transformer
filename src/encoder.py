@@ -1,5 +1,5 @@
-import torch
 import torch.nn as nn
+from attention import Attention
 
 
 class Encoder(nn.Module):
@@ -24,7 +24,6 @@ class Encoder(nn.Module):
         return x
 
 
-# todo: multi-head attention
 class EncoderBlock(nn.Module):
     def __init__(self, dff=1024, d_model=64, dropout=0.1):
         super().__init__()
@@ -46,27 +45,3 @@ class EncoderBlock(nn.Module):
 
         # feed-forward with residual connection
         return x + self.linear(x)
-
-
-class Attention(nn.Module):
-    def __init__(self, d_model=64, dropout=0.1):
-        super().__init__()
-
-        self.Q = nn.Linear(d_model, d_model)
-        self.K = nn.Linear(d_model, d_model)
-        self.V = nn.Linear(d_model, d_model)
-        self.layer_norm = nn.LayerNorm(d_model)
-        self.dropout = nn.Dropout(dropout)
-
-    def forward(self, x):
-        Q = self.Q(x)
-        K = self.K(x)
-        V = self.V(x)
-
-        A = torch.matmul(Q, K.T) / torch.sqrt(torch.tensor(self.d_model))
-        A = torch.softmax(A, dim=-1)  # todo: why dim=-1?
-        A = torch.matmul(A, V)
-        A = self.dropout(A)
-        A = self.layer_norm(A)
-
-        return x + A

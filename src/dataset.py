@@ -59,9 +59,9 @@ class MnistDataset(torch.utils.data.IterableDataset):
     def __iter__(self):
         """
         Yields:
-            combined: shape: (1 x 56 x 56) - 4 images combined into one, with channel dim
-            flattened: shape: (16 x 196) - 16 patches flattened into a vector
-            labels: shape: (4) - Four digit labels
+            combined: shape: (1 x 56 x 56) - 4 images combined into one
+            flattened: shape: (16 x 196) - 16 patches flattened into vector
+            labels: shape: (1) - Single class index between 0-9999
         """
         for sample_indices in self.indices:
             # Get the images and labels for these indices using list comprehension
@@ -82,4 +82,6 @@ class MnistDataset(torch.utils.data.IterableDataset):
 
             # Reshape from (16 x 14 x 14) to (16 x 196)
             flattened = patches.reshape(16, -1)
+
+            labels = self._labels_to_class_index(labels)
             yield combined, flattened, labels

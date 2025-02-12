@@ -1,14 +1,10 @@
-from dataset import MnistDataset
-import matplotlib.pyplot as plt
+from train import train
+import utils
 
 
 def main():
-    dataset = MnistDataset()
-    dataset_iterator = iter(dataset)
-    images, vector, labels = next(dataset_iterator)
-
-    plt.imshow(images)
-    plt.show()
+    utils.show_image_in_dataset()
+    # train()
 
 
 if __name__ == "__main__":

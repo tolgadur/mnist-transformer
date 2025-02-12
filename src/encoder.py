@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from attention import Attention
 
@@ -7,7 +8,7 @@ class Encoder(nn.Module):
         super().__init__()
 
         self.embedding = nn.Linear(input_dim, d_model)
-        self.positional_encoding = nn.parameter.Parameter(nn.randn(seq_len, d_model))
+        self.positional_encoding = nn.parameter.Parameter(torch.randn(seq_len, d_model))
 
         self.encoder_block = nn.Sequential(
             EncoderBlock(dff, d_model, dropout),

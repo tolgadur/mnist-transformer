@@ -4,9 +4,10 @@ import torch.nn as nn
 
 # todo: add masking
 class Attention(nn.Module):
-    def __init__(self, d_model=64, dropout=0.1, heads=4):
+    def __init__(self, d_model=64, dropout=0.1, heads=4, apply_mask=False):
         super().__init__()
 
+        self.apply_mask = apply_mask
         self.d_k = d_model // heads
         self.d_v = self.d_k
         self.heads = heads
@@ -32,6 +33,13 @@ class Attention(nn.Module):
 
             # dim: batch_size, seq_len, seq_len
             A = torch.matmul(Q, K.transpose(-2, -1)) / self.scale
+
+            # apply mask if provided
+            if self.apply_mask:
+                mask = torch.tril(torch.ones(A.shape[-2:], device=A.device))
+                mask = mask.unsqueeze(0)  # add batch dimension
+                A = A.masked_fill(mask == 0, float("-inf"))
+
             A = torch.softmax(A, dim=-1)
             A = torch.matmul(A, V)  # dim: batch_size, seq_len, d_v
 

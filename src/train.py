@@ -11,7 +11,7 @@ import torch.nn as nn
 
 def train_transformer(epochs: int = 10, batch_size: int = 32, lr: float = 0.001):
     # define model
-    encoder = Encoder(dropout=0.1, d_model=64, heads=4)
+    encoder = Encoder(dropout=0.1, d_model=64, heads=4, use_cls_token=False)
     decoder = Decoder(dropout=0.1, d_model=64, heads=4)
     transformer = Transformer(encoder, decoder).to(DEVICE)
 

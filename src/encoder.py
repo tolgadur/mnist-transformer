@@ -13,18 +13,24 @@ class Encoder(nn.Module):
         d_model=64,
         dropout=0.1,
         heads=4,
-        use_cls_token=False,
+        cls_token=False,
     ):
         super().__init__()
 
-        # Learnable class token
-        self.use_cls_token = use_cls_token
-        self.cls_token = None
-        self.positional_encoding = nn.parameter.Parameter(torch.randn(seq_len, d_model))
-        if use_cls_token:
-            self.cls_token = nn.parameter.Parameter(torch.randn(1, d_model))
+        # Store cls_token flag
+        self.use_cls_token = cls_token
+
+        # Learnable class token - only create if needed
+        if self.use_cls_token:
+            self.cls_token = nn.parameter.Parameter(torch.randn(1, 1, d_model))
+            # Adjust positional encoding length for CLS token
             self.positional_encoding = nn.parameter.Parameter(
                 torch.randn(seq_len + 1, d_model)
+            )
+        else:
+            self.cls_token = None
+            self.positional_encoding = nn.parameter.Parameter(
+                torch.randn(seq_len, d_model)
             )
 
         self.embedding = nn.Linear(input_dim, d_model)
@@ -33,13 +39,12 @@ class Encoder(nn.Module):
         )
 
     def forward(self, x):
-        batch_size = x.shape[0]
-
         x = self.embedding(x)
 
         if self.use_cls_token:
-            cls_token = self.cls_token.expand(batch_size, -1, -1)
-            x = torch.cat((cls_token, x), dim=1)
+            batch_size = x.shape[0]
+            cls_tokens = self.cls_token.expand(batch_size, -1, -1)
+            x = torch.cat((cls_tokens, x), dim=1)
 
         x = x + self.positional_encoding
         x = self.encoder_layers(x)

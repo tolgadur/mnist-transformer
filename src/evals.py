@@ -67,6 +67,29 @@ def evaluate_classifier():
     print(f"Multi-Digit Classifier Accuracy: {accuracy:.2f}%")
 
 
+def infer_classifier(input_tensor: torch.Tensor) -> int:
+    """
+    Perform a single inference with the classification model.
+
+    Args:
+        input_tensor (torch.Tensor): Input tensor of shape (1, seq_len, input_dim)
+
+    Returns:
+        int: Predicted number
+    """
+    # Load model
+    model = ClassificationModel(num_classes=9999, seq_len=16).to(DEVICE)
+    model.load_state_dict(torch.load("models/classifier_model.pth"))
+    model.eval()
+
+    with torch.no_grad():
+        input_tensor = input_tensor.to(DEVICE)
+        logits = model(input_tensor)
+        prediction = torch.argmax(logits, dim=1).item()
+
+    return prediction
+
+
 if __name__ == "__main__":
     print("Evaluating Single Digit Classifier...")
     evaluate_single_digit_classifier()

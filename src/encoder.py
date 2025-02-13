@@ -6,18 +6,28 @@ from mlp import MultiLayerPerceptron
 
 class Encoder(nn.Module):
     def __init__(
-        self, input_dim=196, dff=256, seq_len=16, d_model=64, dropout=0.1, heads=4
+        self,
+        input_dim=196,
+        dff=256,
+        seq_len=16,
+        d_model=64,
+        dropout=0.1,
+        heads=4,
+        use_cls_token=False,
     ):
         super().__init__()
 
         # Learnable class token
-        self.cls_token = nn.parameter.Parameter(torch.randn(1, d_model))
+        self.use_cls_token = use_cls_token
+        self.cls_token = None
+        self.positional_encoding = nn.parameter.Parameter(torch.randn(seq_len, d_model))
+        if use_cls_token:
+            self.cls_token = nn.parameter.Parameter(torch.randn(1, d_model))
+            self.positional_encoding = nn.parameter.Parameter(
+                torch.randn(seq_len + 1, d_model)
+            )
 
         self.embedding = nn.Linear(input_dim, d_model)
-        self.positional_encoding = nn.parameter.Parameter(
-            torch.randn(seq_len + 1, d_model)
-        )
-
         self.encoder_layers = nn.Sequential(
             *[EncoderBlock(dff, d_model, dropout, heads) for _ in range(6)]
         )
@@ -27,8 +37,9 @@ class Encoder(nn.Module):
 
         x = self.embedding(x)
 
-        cls_token = self.cls_token.expand(batch_size, -1, -1)
-        x = torch.cat((cls_token, x), dim=1)
+        if self.use_cls_token:
+            cls_token = self.cls_token.expand(batch_size, -1, -1)
+            x = torch.cat((cls_token, x), dim=1)
 
         x = x + self.positional_encoding
         x = self.encoder_layers(x)

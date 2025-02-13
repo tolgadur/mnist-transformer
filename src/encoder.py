@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from attention import Attention
+from mlp import MultiLayerPerceptron
 
 
 class Encoder(nn.Module):
@@ -15,10 +16,8 @@ class Encoder(nn.Module):
             torch.randn(seq_len + 1, d_model)
         )
 
-        self.encoder_block = nn.Sequential(
-            EncoderBlock(dff, d_model, dropout),
-            EncoderBlock(dff, d_model, dropout),
-            EncoderBlock(dff, d_model, dropout),
+        self.encoder_layers = nn.Sequential(
+            *[EncoderBlock(dff, d_model, dropout) for _ in range(6)]
         )
 
     def forward(self, x):
@@ -30,7 +29,7 @@ class Encoder(nn.Module):
         x = torch.cat((cls_token, x), dim=1)
 
         x = x + self.positional_encoding
-        x = self.encoder_block(x)
+        x = self.encoder_layers(x)
 
         return x
 
@@ -40,17 +39,11 @@ class EncoderBlock(nn.Module):
         super().__init__()
 
         self.attention = Attention(d_model, dropout)
-        self.linear = nn.Sequential(
-            nn.Linear(d_model, dff),
-            nn.ReLU(),
-            nn.Linear(dff, d_model),
-            nn.Dropout(dropout),
-            nn.LayerNorm(d_model),
-        )
+        self.mlp = MultiLayerPerceptron(d_model, dff, dropout)
 
     def forward(self, x):
         # multi-head attention with residual connection
         x = self.attention(x)
 
         # feed-forward with residual connection
-        return x + self.linear(x)
+        return x + self.mlp(x)

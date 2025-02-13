@@ -78,12 +78,6 @@ class MnistDataset(torch.utils.data.IterableDataset):
 
         return patches
 
-    def _labels_to_class_index(self, labels: torch.Tensor) -> torch.Tensor:
-        """Convert 4 digit labels into a single class index between 0-9999."""
-        # labels shape: (4,)
-        # Convert to a single number: e.g., [1,2,3,4] -> 1234
-        return labels[0] * 1000 + labels[1] * 100 + labels[2] * 10 + labels[3]
-
     def _arrange_images(self, images: torch.Tensor) -> torch.Tensor:
         # Keep channel dimension when concatenating. The image has dimensions
         # (batch_size, channels, height, width) or (4 x 1 x 28 x 28) in this case.
@@ -99,7 +93,7 @@ class MnistDataset(torch.utils.data.IterableDataset):
         Yields:
             combined: shape: (1 x 56 x 56) - 4 images combined into one
             flattened: shape: (16 x 196) - 16 patches flattened into vector
-            labels: shape: (1) - Single class index between 0-9999
+            labels: shape: (4) - Four indices corresponding to each digit (0-9)
         """
         for sample_indices in self.indices:
             # Get the images and labels for these indices using list comprehension
@@ -119,7 +113,6 @@ class MnistDataset(torch.utils.data.IterableDataset):
             patches = self._create_patches(combined, 4)
 
             # Reshape from (16 x 14 x 14) to (16 x 196)
-            flattened = patches.reshape(16, -1)
+            flattened_patches = patches.reshape(16, -1)
 
-            labels = self._labels_to_class_index(labels)
-            yield combined, flattened, labels
+            yield combined, flattened_patches, labels

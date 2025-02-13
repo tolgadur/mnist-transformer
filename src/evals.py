@@ -1,7 +1,7 @@
 import torch
 from dataset import MnistSingleDigitDataset
 from classifier import ClassificationModel
-from utils import DEVICE
+from config import DEVICE
 import tqdm
 
 

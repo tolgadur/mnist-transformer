@@ -1,6 +1,7 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from config import VOCAB
 
 
 class MnistSingleDigitDataset(torch.utils.data.Dataset):
@@ -93,7 +94,8 @@ class MnistDataset(torch.utils.data.IterableDataset):
         Yields:
             combined: shape: (1 x 56 x 56) - 4 images combined into one
             flattened: shape: (16 x 196) - 16 patches flattened into vector
-            labels: shape: (4) - Four indices corresponding to each digit (0-9)
+            input_seq: shape: (5) - Four indices with <start> token prepended
+            target_seq: shape: (5) - Four indices with <end> token appended
         """
         for sample_indices in self.indices:
             # Get the images and labels for these indices using list comprehension
@@ -103,6 +105,12 @@ class MnistDataset(torch.utils.data.IterableDataset):
             # Stack the images and labels
             images = torch.stack(images)
             labels = torch.tensor(labels)
+
+            # Create input sequence with <start> token prepended
+            input_seq = torch.cat([torch.tensor([VOCAB["<start>"]]), labels])
+
+            # Create target sequence with <end> token appended
+            target_seq = torch.cat([labels, torch.tensor([VOCAB["<end>"]])])
 
             combined = self._arrange_images(images)
 
@@ -115,4 +123,4 @@ class MnistDataset(torch.utils.data.IterableDataset):
             # Reshape from (16 x 14 x 14) to (16 x 196)
             flattened_patches = patches.reshape(16, -1)
 
-            yield combined, flattened_patches, labels
+            yield combined, flattened_patches, input_seq, target_seq

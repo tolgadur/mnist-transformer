@@ -64,4 +64,4 @@ class EncoderBlock(nn.Module):
         x = self.attention(x)
 
         # feed-forward with residual connection
-        return x + self.mlp(x)
+        return self.mlp(x)

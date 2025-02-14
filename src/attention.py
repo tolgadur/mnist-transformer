@@ -19,6 +19,7 @@ class CrossAttention(nn.Module):
         self.layer_norm = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
         self.out = nn.Linear(d_model, d_model)
+        self.attention_weights = None  # Store attention weights
 
     def forward(self, x: torch.Tensor, y: torch.Tensor):
         # x is input from decoder, y is input from encoder
@@ -42,6 +43,10 @@ class CrossAttention(nn.Module):
 
         # compute attention. dim: batch_size, heads, seq_len_x, seq_len_y
         A = torch.matmul(qry, key.transpose(-2, -1)) / self.scale
+
+        # Store raw attention scores
+        self.attention_weights = A.detach().cpu()
+
         A = torch.softmax(A, dim=-1)
         A = torch.matmul(A, val)
 
@@ -77,6 +82,7 @@ class Attention(nn.Module):
         self.layer_norm = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
         self.out = nn.Linear(d_model, d_model)
+        self.attention_weights = None  # Store attention weights
 
     def forward(self, x: torch.Tensor):
         batch_size, seq_len, _ = x.shape
@@ -95,6 +101,9 @@ class Attention(nn.Module):
         val = val.transpose(1, 2)
 
         A = torch.matmul(qry, key.transpose(-2, -1)) / self.scale
+
+        # Store raw attention scores
+        self.attention_weights = A.detach().cpu()
 
         if self.apply_mask:
             mask = torch.tril(torch.ones(A.shape[-2:], device=A.device))

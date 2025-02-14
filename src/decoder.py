@@ -40,5 +40,4 @@ class DecoderLayer(nn.Module):
         # dim of y: batch_size, seq_len_y, d_model
         x = self.self_attn(x)
         x = self.cross_attn(x, y)
-        x = self.mlp(x)
-        return x
+        return self.mlp(x)

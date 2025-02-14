@@ -10,8 +10,10 @@ class MultiLayerPerceptron(nn.Module):
             nn.ReLU(),
             nn.Linear(dff, d_model),
             nn.Dropout(dropout),
-            nn.LayerNorm(d_model),
         )
 
+        self.layer_norm = nn.LayerNorm(d_model)
+
     def forward(self, x):
-        return self.linear(x)
+        linear = x + self.linear(x)
+        return self.layer_norm(linear)

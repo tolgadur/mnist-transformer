@@ -1,9 +1,15 @@
+# import train
 import evals
-import train
 
 
 def main():
-    train.train_transformer(batch_size=256, epochs=10)
+    # train.train_transformer(batch_size=512, epochs=20)
+
+    # transformer inference
+    evals.example_transformer_inference()
+
+    # evaluate transformer
+    evals.evaluate_transformer()
 
 
 if __name__ == "__main__":

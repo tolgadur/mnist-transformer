@@ -13,12 +13,12 @@ class Encoder(nn.Module):
         d_model=64,
         dropout=0.1,
         heads=4,
-        cls_token=False,
+        use_cls_token=False,
     ):
         super().__init__()
 
         # Store cls_token flag
-        self.use_cls_token = cls_token
+        self.use_cls_token = use_cls_token
 
         # Learnable class token - only create if needed
         if self.use_cls_token:

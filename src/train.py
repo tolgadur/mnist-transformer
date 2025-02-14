@@ -36,7 +36,7 @@ def train_transformer(epochs: int = 10, batch_size: int = 32, lr: float = 0.001)
 
             # Reshape logits and target for cross entropy loss
             # logits shape: (batch_size, seq_len, vocab_size)
-            # target shape: (batch_size * seq_len)
+            # target shape: (batch_size * seq_len, vocab_size)
             batch_size, seq_len, vocab_size = logits.shape
             logits = logits.reshape(-1, vocab_size)
             target_seq = target_seq.reshape(-1)

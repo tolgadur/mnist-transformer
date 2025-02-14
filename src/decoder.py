@@ -9,12 +9,13 @@ class Decoder(nn.Module):
     def __init__(self, d_model=64, dropout=0.1, heads=4):
         super().__init__()
 
-        self.embedding = nn.Embedding(len(VOCAB), d_model)
+        self.embedding = nn.Embedding(num_embeddings=len(VOCAB), embedding_dim=d_model)
         self.layers = nn.ModuleList(
             [DecoderLayer(d_model, dropout, heads) for _ in range(6)]
         )
 
     def forward(self, x: torch.Tensor, y: torch.Tensor):
+        # dim: (batch_size, seq_len) -> (batch_size, seq_len, d_model)
         x = self.embedding(x)
         for layer in self.layers:
             x = layer(x, y)

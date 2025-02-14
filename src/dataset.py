@@ -54,15 +54,11 @@ class MnistDataset(torch.utils.data.IterableDataset):
             root="./data", train=train, download=True, transform=transform
         )
         self.num_samples = num_samples
+        self.seed = seed
 
-        # Set seed for reproducibility
-        generator = torch.Generator()
-        # generator.manual_seed(seed)
-
-        # Pre-generate all indices for the entire dataset
-        self.indices = torch.randint(
-            len(self.dataset), size=(num_samples, 4), generator=generator
-        )
+        # Set global random seed if provided
+        if seed is not None:
+            torch.manual_seed(seed)
 
     def __len__(self):
         return self.num_samples
@@ -97,8 +93,12 @@ class MnistDataset(torch.utils.data.IterableDataset):
             input_seq: shape: (5) - Four indices with <start> token prepended
             target_seq: shape: (5) - Four indices with <end> token appended
         """
-        for sample_indices in self.indices:
-            # Get the images and labels for these indices using list comprehension
+        # Generate random indices on-the-fly for each iteration
+        for _ in range(self.num_samples):
+            # Generate 4 random indices for this sample
+            sample_indices = torch.randint(len(self.dataset), size=(4,))
+
+            # Get the images and labels for these indices
             images = [self.dataset[idx.item()][0] for idx in sample_indices]
             labels = [self.dataset[idx.item()][1] for idx in sample_indices]
 

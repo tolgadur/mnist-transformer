@@ -57,7 +57,7 @@ class MnistDataset(torch.utils.data.IterableDataset):
 
         # Set seed for reproducibility
         generator = torch.Generator()
-        generator.manual_seed(seed)
+        # generator.manual_seed(seed)
 
         # Pre-generate all indices for the entire dataset
         self.indices = torch.randint(

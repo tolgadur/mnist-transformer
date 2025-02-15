@@ -32,8 +32,10 @@ def load_transformer_model():
     decoder = Decoder()
     model = Transformer(encoder, decoder).to(DEVICE)
 
-    # Load trained weights
-    model.load_state_dict(torch.load("models/transformer_model.pth"))
+    # Load trained weights and map to CPU
+    model.load_state_dict(
+        torch.load("models/transformer_model.pth", map_location=DEVICE)
+    )
     model.eval()
 
     return model

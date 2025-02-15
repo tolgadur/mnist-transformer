@@ -9,7 +9,7 @@ def main():
     evals.example_transformer_inference(seed=42)
 
     # evaluate transformer
-    # evals.evaluate_transformer()
+    evals.evaluate_transformer()
 
 
 if __name__ == "__main__":
